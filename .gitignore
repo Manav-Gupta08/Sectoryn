@@ -1,0 +1,60 @@
+# Build output
+/build/
+/out/
+/install/
+cmake-build-*/
+CMakeUserPresets.json
+compile_commands.json
+CMakeCache.txt
+CMakeFiles/
+Testing/
+
+# Compiled artifacts
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+*.exe
+*.pdb
+*.ilk
+
+# Qt generated
+*.qm
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+
+# Fuzzing / profiling
+crash-*
+leak-*
+timeout-*
+*.profraw
+*.profdata
+
+# Generated reports and local data
+/reports/
+*.sectoryn-report.html
+*.sectoryn-report.json
+
+# Samples (never commit live malware)
+/samples/
+*.malware
+*.infected
+
+# Secrets
+.env
+*.key
+secrets.*
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Local notes
+*.local.md
