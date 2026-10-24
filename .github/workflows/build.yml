@@ -1,0 +1,67 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    name: Linux (GCC)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build qt6-base-dev qt6-qpa-plugins libgl-dev libgtest-dev libssl-dev \
+            nlohmann-json3-dev libyara-dev
+
+      - name: Configure
+        run: cmake --preset linux-debug -DSECTORYN_WARNINGS_AS_ERRORS=ON
+
+      - name: Build
+        run: cmake --build --preset linux-debug
+
+      - name: Test
+        run: ctest --preset linux-debug
+
+  windows:
+    name: Windows (MSYS2 UCRT64)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-qt6-base
+            mingw-w64-ucrt-x86_64-gtest
+            mingw-w64-ucrt-x86_64-openssl
+            mingw-w64-ucrt-x86_64-nlohmann-json
+
+      - name: Configure
+        run: cmake --preset msys2-debug -DSECTORYN_WARNINGS_AS_ERRORS=ON
+
+      - name: Build
+        run: cmake --build --preset msys2-debug
+
+      - name: Test
+        run: ctest --preset msys2-debug
