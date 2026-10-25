@@ -1,0 +1,192 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "id": "process_access",
+      "name": "Opening other processes",
+      "apis": ["OpenProcess", "OpenThread", "NtOpenProcess", "NtOpenThread"]
+    },
+    {
+      "id": "remote_memory",
+      "name": "Writing memory of other processes",
+      "apis": ["VirtualAllocEx", "VirtualAlloc2", "VirtualProtectEx", "WriteProcessMemory",
+               "NtWriteVirtualMemory", "ZwWriteVirtualMemory", "NtMapViewOfSection",
+               "ZwMapViewOfSection", "MapViewOfFile2"]
+    },
+    {
+      "id": "remote_execution",
+      "name": "Running code in other processes",
+      "apis": ["CreateRemoteThread", "CreateRemoteThreadEx", "NtCreateThreadEx",
+               "RtlCreateUserThread", "QueueUserAPC", "NtQueueApcThread", "SetThreadContext",
+               "NtSetContextThread", "Wow64SetThreadContext"]
+    },
+    {
+      "id": "memory_protection",
+      "name": "Changing memory protection",
+      "apis": ["VirtualProtect", "NtProtectVirtualMemory", "ZwProtectVirtualMemory"]
+    },
+    {
+      "id": "dynamic_loading",
+      "name": "Resolving code at run time",
+      "apis": ["LoadLibraryA", "LoadLibraryW", "LoadLibraryExA", "LoadLibraryExW", "LdrLoadDll",
+               "GetProcAddress", "LdrGetProcedureAddress"]
+    },
+    {
+      "id": "networking",
+      "name": "Network communication",
+      "apis": ["InternetOpenA", "InternetOpenW", "InternetOpenUrlA", "InternetOpenUrlW",
+               "InternetConnectA", "InternetConnectW", "InternetReadFile", "HttpOpenRequestA",
+               "HttpOpenRequestW", "HttpSendRequestA", "HttpSendRequestW", "URLDownloadToFileA",
+               "URLDownloadToFileW", "WinHttpOpen", "WinHttpConnect", "WinHttpSendRequest",
+               "WinHttpReadData", "WSAStartup", "socket", "connect", "send", "recv",
+               "getaddrinfo", "gethostbyname"]
+    },
+    {
+      "id": "process_creation",
+      "name": "Starting programs",
+      "apis": ["CreateProcessA", "CreateProcessW", "CreateProcessAsUserA",
+               "CreateProcessAsUserW", "CreateProcessWithTokenW", "ShellExecuteA",
+               "ShellExecuteW", "ShellExecuteExA", "ShellExecuteExW", "WinExec"]
+    },
+    {
+      "id": "service_management",
+      "name": "Installing or controlling services",
+      "apis": ["OpenSCManagerA", "OpenSCManagerW", "CreateServiceA", "CreateServiceW",
+               "ChangeServiceConfigA", "ChangeServiceConfigW", "StartServiceA", "StartServiceW"]
+    },
+    {
+      "id": "registry_write",
+      "name": "Writing to the registry",
+      "apis": ["RegSetValueExA", "RegSetValueExW", "RegSetKeyValueA", "RegSetKeyValueW",
+               "RegCreateKeyExA", "RegCreateKeyExW"]
+    },
+    {
+      "id": "encryption",
+      "name": "Encrypting data",
+      "apis": ["CryptEncrypt", "CryptGenKey", "CryptImportKey", "CryptDeriveKey",
+               "BCryptEncrypt", "BCryptGenerateSymmetricKey", "BCryptImportKeyPair"]
+    },
+    {
+      "id": "file_enumeration",
+      "name": "Walking the file system",
+      "apis": ["FindFirstFileA", "FindFirstFileW", "FindFirstFileExA", "FindFirstFileExW",
+               "FindNextFileA", "FindNextFileW"]
+    },
+    {
+      "id": "input_capture",
+      "name": "Capturing keyboard input",
+      "apis": ["SetWindowsHookExA", "SetWindowsHookExW", "GetAsyncKeyState",
+               "RegisterRawInputDevices", "GetRawInputData"]
+    },
+    {
+      "id": "debugger_detection",
+      "name": "Detecting debuggers",
+      "apis": ["IsDebuggerPresent", "CheckRemoteDebuggerPresent", "NtQueryInformationProcess",
+               "NtSetInformationThread"]
+    },
+    {
+      "id": "token_manipulation",
+      "name": "Changing process privileges",
+      "apis": ["AdjustTokenPrivileges", "OpenProcessToken", "DuplicateTokenEx",
+               "ImpersonateLoggedOnUser"]
+    }
+  ],
+  "combinations": [
+    {
+      "id": "api.process_injection",
+      "title": "Imports for injecting code into other processes",
+      "requires": ["process_access", "remote_memory", "remote_execution"],
+      "severity": "high",
+      "confidence": "medium",
+      "attack": [{"id": "T1055", "name": "Process Injection"}],
+      "explanation": "Opening another process, writing to its memory and starting a thread in it is the classic sequence for running code inside a different process.",
+      "limitations": "Debuggers, security products, game overlays and accessibility tools use the same functions legitimately. Imports show capability, not use.",
+      "next_step": "Find the code that calls these functions and check which processes it targets.",
+      "group": "injection"
+    },
+    {
+      "id": "api.runtime_code_modification",
+      "title": "Imports for loading and unprotecting code at run time",
+      "requires": ["dynamic_loading", "memory_protection"],
+      "severity": "low",
+      "confidence": "low",
+      "attack": [{"id": "T1620", "name": "Reflective Code Loading"}],
+      "explanation": "Resolving functions at run time and changing memory protection are the building blocks of unpacking stubs and in-memory loaders.",
+      "limitations": "Many ordinary programs, runtimes and plug-in hosts use both.",
+      "next_step": "Check whether the file also shows signs of packing, such as high-entropy executable sections.",
+      "group": "packing"
+    },
+    {
+      "id": "api.download_and_execute",
+      "title": "Imports for downloading and starting programs",
+      "requires": ["networking", "process_creation"],
+      "severity": "medium",
+      "confidence": "low",
+      "attack": [{"id": "T1105", "name": "Ingress Tool Transfer"}],
+      "explanation": "Network access combined with starting processes is what a downloader needs to fetch and run further stages.",
+      "limitations": "Updaters, installers, browsers and many applications legitimately do both.",
+      "next_step": "Look for URLs or host names among the strings and check what is started.",
+      "group": "downloader"
+    },
+    {
+      "id": "api.service_installation",
+      "title": "Imports for installing services",
+      "requires": ["service_management"],
+      "severity": "medium",
+      "confidence": "low",
+      "attack": [{"id": "T1543.003", "name": "Create or Modify System Process: Windows Service"}],
+      "explanation": "Installing a service lets a program run at every boot with system privileges.",
+      "limitations": "Installers and system administration tools manage services routinely.",
+      "next_step": "Look for service names and binary paths among the strings.",
+      "group": "persistence"
+    },
+    {
+      "id": "api.file_encryption",
+      "title": "Imports for encrypting files while walking the file system",
+      "requires": ["encryption", "file_enumeration"],
+      "severity": "medium",
+      "confidence": "low",
+      "attack": [{"id": "T1486", "name": "Data Encrypted for Impact"}],
+      "explanation": "Enumerating files and encrypting data is the core capability of ransomware.",
+      "limitations": "Backup software, archivers and disk encryption tools need exactly these functions.",
+      "next_step": "Look for ransom notes, file extension lists or shadow copy deletion among the strings.",
+      "group": "ransomware"
+    },
+    {
+      "id": "api.input_capture",
+      "title": "Imports for capturing keyboard input",
+      "requires": ["input_capture"],
+      "severity": "medium",
+      "confidence": "low",
+      "attack": [{"id": "T1056.001", "name": "Input Capture: Keylogging"}],
+      "explanation": "Global hooks and key-state polling can record what a user types in other applications.",
+      "limitations": "Games, hotkey utilities and accessibility software use the same functions.",
+      "next_step": "Check whether a global hook is installed and where captured data is sent or stored.",
+      "group": "collection"
+    },
+    {
+      "id": "api.debugger_detection",
+      "title": "Imports for detecting debuggers",
+      "requires": ["debugger_detection"],
+      "severity": "low",
+      "confidence": "low",
+      "attack": [{"id": "T1622", "name": "Debugger Evasion"}],
+      "explanation": "Programs that check for a debugger may behave differently when analyzed.",
+      "limitations": "Debugger checks are common in commercial software, games and runtime libraries.",
+      "next_step": "Expect behavior under a debugger to differ and plan dynamic analysis accordingly.",
+      "group": "evasion"
+    },
+    {
+      "id": "api.privilege_adjustment",
+      "title": "Imports for changing process privileges",
+      "requires": ["token_manipulation"],
+      "severity": "low",
+      "confidence": "low",
+      "attack": [{"id": "T1134", "name": "Access Token Manipulation"}],
+      "explanation": "Enabling privileges or impersonating other users can grant access a program would not normally have.",
+      "limitations": "System utilities and installers routinely enable privileges such as shutdown or backup.",
+      "next_step": "Check which privileges are requested, for example SeDebugPrivilege among the strings.",
+      "group": "privilege"
+    }
+  ]
+}
