@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Sectoryn
+GenericName=PE Static Analysis Workbench
+Comment=Inspect Windows executables without running them
+Exec=sectoryn %f
+Terminal=false
+Categories=Development;Utility;
