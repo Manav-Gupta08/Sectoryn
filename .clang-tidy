@@ -1,0 +1,60 @@
+---
+# Checks that catch real defects in code that handles hostile input. Style is left to
+# clang-format; checks that mostly produce noise for this code base are disabled:
+# - bugprone-unchecked-optional-access: cannot see GoogleTest's ASSERT_TRUE(opt) guards.
+# - bugprone-implicit-widening-of-multiplication-result: size constants are built from small
+#   literals on purpose (64 * 1024).
+# - clang-analyzer-cplusplus.NewDelete*: Qt widgets are owned by their parent, which the
+#   analyzer does not model.
+# - modernize-avoid-c-arrays, -raw-string-literal, -return-braced-init-list: style only.
+# - performance-inefficient-vector-operation: small, bounded loops.
+# - readability-redundant-member-init: `{}` initializers keep -Wmissing-field-initializers quiet
+#   for aggregates built with designated initializers.
+# - readability-redundant-access-specifiers: Qt's `public Q_SLOTS:` sections repeat `public`.
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-unchecked-optional-access,
+  clang-analyzer-*,
+  -clang-analyzer-cplusplus.NewDelete,
+  -clang-analyzer-cplusplus.NewDeleteLeaks,
+  concurrency-*,
+  cppcoreguidelines-slicing,
+  cppcoreguidelines-virtual-class-destructor,
+  misc-*,
+  -misc-include-cleaner,
+  -misc-no-recursion,
+  -misc-non-private-member-variables-in-classes,
+  modernize-*,
+  -modernize-avoid-c-arrays,
+  -modernize-raw-string-literal,
+  -modernize-return-braced-init-list,
+  -modernize-use-designated-initializers,
+  -modernize-use-nodiscard,
+  -modernize-use-trailing-return-type,
+  performance-*,
+  -performance-enum-size,
+  -performance-inefficient-vector-operation,
+  portability-*,
+  readability-container-size-empty,
+  readability-duplicate-include,
+  readability-else-after-return,
+  readability-inconsistent-declaration-parameter-name,
+  readability-make-member-function-const,
+  readability-misleading-indentation,
+  readability-redundant-*,
+  -readability-redundant-access-specifiers,
+  -readability-redundant-member-init,
+  readability-simplify-boolean-expr
+# Generated Qt moc files and third-party headers are not checked.
+HeaderFilterRegex: '.*/(src|tests)/.*'
+WarningsAsErrors: '*'
+FormatStyle: file
+CheckOptions:
+  - key: bugprone-assert-side-effect.AssertMacros
+    value: 'assert,Q_ASSERT'
+  - key: misc-const-correctness.AnalyzeValues
+    value: false
+...

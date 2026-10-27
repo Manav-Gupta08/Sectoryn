@@ -44,6 +44,7 @@ enum class ErrorCode : std::uint8_t {
     return "unknown error";
 }
 
+// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.Assign): false positive through std::variant
 struct Error {
     ErrorCode code = ErrorCode::Internal;
     std::string message;

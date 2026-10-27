@@ -1,0 +1,63 @@
+name: static-analysis
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APT_PACKAGES: >-
+    ninja-build qt6-base-dev qt6-qpa-plugins libgl-dev libgtest-dev libssl-dev
+    nlohmann-json3-dev libyara-dev
+
+jobs:
+  clang-tidy:
+    name: clang-tidy
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends $APT_PACKAGES clang-tidy-18
+
+      - name: Configure
+        run: cmake --preset linux-debug
+
+      # Generated Qt sources must exist before clang-tidy reads the compile database.
+      - name: Build
+        run: cmake --build --preset linux-debug
+
+      - name: Run clang-tidy
+        run: |
+          git ls-files 'src/*.cpp' 'tests/*.cpp' \
+            | grep -v -e '^src/platform/win/' -e '^tests/fuzz/' \
+            | xargs -P "$(nproc)" -n 4 clang-tidy-18 -p build/linux-debug --quiet
+
+  sanitizers:
+    name: ASan + UBSan
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends $APT_PACKAGES
+
+      - name: Configure
+        run: cmake --preset linux-sanitize
+
+      - name: Build
+        run: cmake --build --preset linux-sanitize
+
+      - name: Test
+        run: ctest --preset linux-sanitize
