@@ -66,13 +66,24 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "linux-sanitize",
+      "displayName": "Linux Debug with ASan and UBSan",
+      "inherits": ["base", "linux-only"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "SECTORYN_ENABLE_ASAN": "ON",
+        "SECTORYN_ENABLE_UBSAN": "ON"
+      }
     }
   ],
   "buildPresets": [
     { "name": "msys2-debug", "configurePreset": "msys2-debug" },
     { "name": "msys2-release", "configurePreset": "msys2-release" },
     { "name": "linux-debug", "configurePreset": "linux-debug" },
-    { "name": "linux-release", "configurePreset": "linux-release" }
+    { "name": "linux-release", "configurePreset": "linux-release" },
+    { "name": "linux-sanitize", "configurePreset": "linux-sanitize" }
   ],
   "testPresets": [
     {
@@ -92,6 +103,16 @@
     { "name": "msys2-debug", "inherits": "base", "configurePreset": "msys2-debug" },
     { "name": "msys2-release", "inherits": "base", "configurePreset": "msys2-release" },
     { "name": "linux-debug", "inherits": "base", "configurePreset": "linux-debug" },
-    { "name": "linux-release", "inherits": "base", "configurePreset": "linux-release" }
+    { "name": "linux-release", "inherits": "base", "configurePreset": "linux-release" },
+    {
+      "name": "linux-sanitize",
+      "inherits": "base",
+      "configurePreset": "linux-sanitize",
+      "environment": {
+        "QT_QPA_PLATFORM": "offscreen",
+        "ASAN_OPTIONS": "detect_leaks=1:strict_string_checks=1",
+        "UBSAN_OPTIONS": "print_stacktrace=1"
+      }
+    }
   ]
 }
